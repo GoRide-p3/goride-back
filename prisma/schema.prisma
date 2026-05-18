@@ -1,0 +1,47 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id           String   @id
+  name         String
+  email        String   @unique
+  phone        String?
+  gender       String
+  rating       Float    @default(0)
+  totalRatings Int      @default(0)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  rides Ride[]
+}
+
+model Ride {
+  id                 String   @id @default(uuid())
+  driverId           String
+  origin             String
+  destination        String
+  date               String
+  departureTimeStart String
+  departureTimeEnd   String
+  price              Float
+  totalSeats         Int
+  availableSeats     Int
+  routeId            String?
+  routeName          String?
+  sameGenderOnly     Boolean  @default(false)
+  status             String   @default("active")
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
+
+  driver User @relation(fields: [driverId], references: [id], onDelete: Cascade)
+
+  @@index([driverId])
+  @@index([date])
+  @@index([status])
+}
