@@ -44,4 +44,5 @@ model Ride {
   @@index([driverId])
   @@index([date])
   @@index([status])
+  @@index([origin, destination, date])
 }
