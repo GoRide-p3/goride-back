@@ -12,6 +12,8 @@ export const app = express();
 app.use(
   cors({
     origin: corsOrigins,
+    methods: ["GET", "POST", "PUT", "DELETE"],
+    credentials: true,
   }),
 );
 app.use(express.json());

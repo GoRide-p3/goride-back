@@ -61,8 +61,12 @@ export async function listRides(query: ListRidesQuery) {
   if (query.origin) where.origin = { contains: query.origin };
   if (query.destination) where.destination = { contains: query.destination };
   if (query.date) where.date = query.date;
-  if (query.timeStart) where.departureTimeStart = { gte: query.timeStart };
-  if (query.timeEnd) where.departureTimeEnd = { lte: query.timeEnd };
+  if (query.timeStart || query.timeEnd) {
+    where.departureTimeStart = {
+      ...(query.timeStart ? { gte: query.timeStart } : {}),
+      ...(query.timeEnd ? { lte: query.timeEnd } : {}),
+    };
+  }
   if (query.maxPrice !== undefined) where.price = { lte: query.maxPrice };
   if (query.sameGenderOnly !== undefined) {
     where.sameGenderOnly = query.sameGenderOnly;
