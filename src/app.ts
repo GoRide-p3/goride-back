@@ -3,6 +3,7 @@ import express from "express";
 import { AppError } from "./lib/app-error.js";
 import { ridesRouter } from "./modules/rides/rides.routes.js";
 import { authRouter } from "./modules/auth/auth.routes.js";
+import { userRouter } from "./modules/user/user.routes.js";
 
 const corsOrigins = process.env.CORS_ORIGIN?.split(",").map((origin) =>
   origin.trim(),
@@ -27,6 +28,7 @@ app.get("/health", (_request, response) => {
 });
 
 app.use("/auth", authRouter);
+app.use("/user", userRouter);
 app.use("/rides", ridesRouter);
 
 app.use((_request, response) => {

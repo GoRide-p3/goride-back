@@ -14,13 +14,17 @@ model User {
   cpf          String   @unique
   phone        String?
   gender       String
-  birthDate    String
+  birthDate    String?
   passwordHash String
+  bio          String?
+  pix          String?
+  avatar       String?
+  privateMode   Boolean  @default(false)
+  emailVerified Boolean @default(false)
   rating       Float    @default(0)
   totalRatings Int      @default(0)
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
-  emailVerified Boolean @default(false)
 
   rides Ride[]
 }

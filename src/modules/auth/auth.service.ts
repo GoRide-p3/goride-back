@@ -22,6 +22,11 @@ function formatUser(user: {
   gender: string;
   phone: string | null;
   birthDate: string | null;
+  bio: string | null;
+  pix: string | null;
+  avatar: string | null;
+  privateMode: boolean;
+  emailVerified: boolean;
   rating: number;
   totalRatings: number;
   createdAt: Date;
@@ -33,6 +38,11 @@ function formatUser(user: {
     gender: user.gender,
     phone: user.phone,
     birthDate: user.birthDate,
+    bio: user.bio,
+    pix: user.pix,
+    avatar: user.avatar,
+    privateMode: user.privateMode,
+    emailVerified: user.emailVerified,
     rating: user.rating,
     totalRatings: user.totalRatings,
     createdAt: user.createdAt,
