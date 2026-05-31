@@ -1,10 +1,6 @@
-import { AppError } from "../lib/app-error.js";
-import { prisma } from "../lib/prisma.js";
-import type {
-  CreateRideInput,
-  ListRidesQuery,
-  UpdateRideInput,
-} from "../validators/ride.schema.js";
+import { AppError } from "../../lib/app-error.js";
+import { prisma } from "../../lib/prisma.js"
+import type { CreateRideInput, ListRidesQuery, UpdateRideInput } from "./ride.schema.js";
 
 // O front recebe a carona com os dados do motorista junto.
 function formatRide(ride: any) {

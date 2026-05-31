@@ -16,10 +16,9 @@ const toMinutes = (time: string) => {
 };
 
 // Validacao para criar uma carona.
-// O driverId fica com user-1 porque ainda nao temos login de verdade.
 export const createRideSchema = z
   .object({
-    driverId: z.string().min(1).default("user-1"),
+    driverId: z.string().min(1),
     origin: z.string().trim().min(2),
     destination: z.string().trim().min(2),
     date: dateSchema,

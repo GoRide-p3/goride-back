@@ -1,11 +1,7 @@
 import type { Request, Response } from "express";
-import { AppError } from "../lib/app-error.js";
-import {
-  createRideSchema,
-  listRidesQuerySchema,
-  updateRideSchema,
-} from "../validators/ride.schema.js";
-import * as ridesService from "../services/rides.service.js";
+import { AppError } from "../../lib/app-error.js";
+import { createRideSchema, listRidesQuerySchema, updateRideSchema } from "./ride.schema.js";
+import * as ridesService from "../rides/rides.service.js"
 
 function sendValidationError(response: Response, error: unknown) {
   const zodError = error as any;

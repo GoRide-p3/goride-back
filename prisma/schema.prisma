@@ -8,11 +8,19 @@ datasource db {
 }
 
 model User {
-  id           String   @id
+  id           String   @id @default(uuid())
   name         String
   email        String   @unique
+  cpf          String   @unique
   phone        String?
   gender       String
+  birthDate    String?
+  passwordHash String
+  bio          String?
+  pix          String?
+  avatar       String?
+  privateMode   Boolean  @default(false)
+  emailVerified Boolean @default(false)
   rating       Float    @default(0)
   totalRatings Int      @default(0)
   createdAt    DateTime @default(now())
