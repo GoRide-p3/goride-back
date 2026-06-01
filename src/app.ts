@@ -4,6 +4,7 @@ import { AppError } from "./lib/app-error.js";
 import { ridesRouter } from "./modules/rides/rides.routes.js";
 import { authRouter } from "./modules/auth/auth.routes.js";
 import { userRouter } from "./modules/user/user.routes.js";
+import { rideRequestsRouter } from "./modules/ride-request/ride-request.routes.js";
 
 const corsOrigins = process.env.CORS_ORIGIN?.split(",").map((origin) =>
   origin.trim(),
@@ -14,7 +15,7 @@ export const app = express();
 app.use(
   cors({
     origin: corsOrigins,
-    methods: ["GET", "POST", "PUT", "DELETE"],
+    methods: ["GET", "POST", "PUT", "PATCH", "DELETE"],
     credentials: true,
   }),
 );
@@ -30,6 +31,7 @@ app.get("/health", (_request, response) => {
 app.use("/auth", authRouter);
 app.use("/user", userRouter);
 app.use("/rides", ridesRouter);
+app.use("/", rideRequestsRouter);
 
 app.use((_request, response) => {
   response.status(404).json({ message: "Rota nao encontrada" });
