@@ -15,7 +15,6 @@ const toMinutes = (time: string) => {
   return hours * 60 + minutes;
 };
 
-// Validacao para criar uma carona.
 export const createRideSchema = z
   .object({
     driverId: z.string().min(1),
@@ -53,7 +52,6 @@ export const createRideSchema = z
     }
   });
 
-// Na edicao todos os campos sao opcionais.
 export const updateRideSchema = z
   .object({
     driverId: z.string().min(1).optional(),
@@ -109,6 +107,8 @@ export const listRidesQuerySchema = z.object({
     .optional(),
   driverId: z.string().trim().optional(),
   status: statusSchema.optional(),
+  passengerLat: z.coerce.number().optional(), 
+  passengerLng: z.coerce.number().optional(), 
 });
 
 export type CreateRideInput = z.infer<typeof createRideSchema>;

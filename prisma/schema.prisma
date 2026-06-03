@@ -35,6 +35,10 @@ model Ride {
   driverId           String
   origin             String
   destination        String
+  originLat          Float?
+  originLng          Float?
+  destinationLat     Float?
+  destinationLng     Float?
   date               String
   departureTimeStart String
   departureTimeEnd   String

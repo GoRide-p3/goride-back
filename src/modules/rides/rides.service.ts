@@ -1,13 +1,25 @@
 import { AppError } from "../../lib/app-error.js";
+import { geocodeAddress } from "../../lib/geocoding.js";
+import { haversineDistance } from "../../lib/haversine.js";
 import { prisma } from "../../lib/prisma.js"
 import type { CreateRideInput, ListRidesQuery, UpdateRideInput } from "./ride.schema.js";
 
-// O front recebe a carona com os dados do motorista junto.
-function formatRide(ride: any) {
-  let driverGender = "Outro";
 
-  if (ride.driver.gender === "Masculino" || ride.driver.gender === "Feminino") {
-    driverGender = ride.driver.gender;
+function formatRide(ride: any, passengerLat?: number, passengerLng?: number) {
+  let proximityMeters: number | null = null;
+
+  if (
+    passengerLat !== undefined &&
+    passengerLng !== undefined &&
+    ride.originLat !== null &&
+    ride.originLng !== null
+  ) {
+    proximityMeters = haversineDistance(
+      passengerLat,
+      passengerLng,
+      ride.originLat,
+      ride.originLng,
+    );
   }
 
   return {
@@ -18,7 +30,7 @@ function formatRide(ride: any) {
       name: ride.driver.name,
       rating: ride.driver.rating,
       totalRatings: ride.driver.totalRatings,
-      gender: driverGender,
+      gender: ride.driver.gender,
     },
     departure: ride.departureTimeStart,
     origin: ride.origin,
@@ -36,11 +48,12 @@ function formatRide(ride: any) {
     status: ride.status,
     createdAt: ride.createdAt,
     updatedAt: ride.updatedAt,
+    proximityMeters, 
+    isNearby: proximityMeters !== null && proximityMeters <= 500,
   };
 }
 
 async function ensureDriverExists(driverId: string) {
-  // Sem login ainda, entao uso os usuarios criados no seed.
   const driver = await prisma.user.findUnique({
     where: { id: driverId },
     select: { id: true },
@@ -54,10 +67,14 @@ async function ensureDriverExists(driverId: string) {
 export async function listRides(query: ListRidesQuery) {
   const where: any = {};
 
-  if (query.origin) where.origin = { contains: query.origin };
+  if (query.origin && !query.passengerLat) {
+    where.origin = { contains: query.origin };
+  }
+  
   if (query.destination) where.destination = { contains: query.destination };
+  
   if (query.date) where.date = query.date;
-  if (query.timeStart || query.timeEnd) {
+  if (query.timeStart) {
     where.departureTimeStart = {
       ...(query.timeStart ? { gte: query.timeStart } : {}),
       ...(query.timeEnd ? { lte: query.timeEnd } : {}),
@@ -76,7 +93,24 @@ export async function listRides(query: ListRidesQuery) {
     orderBy: [{ date: "asc" }, { departureTimeStart: "asc" }],
   });
 
-  return rides.map(formatRide);
+  const formatted = rides.map((ride) =>
+    formatRide(ride, query.passengerLat, query.passengerLng),
+  );
+
+  if (query.passengerLat !== undefined && query.passengerLng !== undefined) {
+    return formatted
+      .filter((ride) => ride.proximityMeters === null || ride.proximityMeters <= 500)
+      .sort((a, b) => {
+        if (a.proximityMeters !== null && b.proximityMeters !== null) {
+          return a.proximityMeters - b.proximityMeters;
+        }
+        if (a.proximityMeters !== null) return -1;
+        if (b.proximityMeters !== null) return 1;
+        return 0;
+      });
+  }
+
+  return formatted;
 }
 
 export async function getRideById(id: string) {
@@ -95,13 +129,21 @@ export async function getRideById(id: string) {
 export async function createRide(data: CreateRideInput) {
   await ensureDriverExists(data.driverId);
 
-  // Se nao vier availableSeats, considero todas as vagas livres.
   const availableSeats = data.availableSeats ?? data.totalSeats;
+
+  const [originCoords, destinationCoords] = await Promise.all([
+    geocodeAddress(data.origin),
+    geocodeAddress(data.destination),
+  ]);
 
   const ride = await prisma.ride.create({
     data: {
       ...data,
       availableSeats,
+      originLat: originCoords?.lat ?? null,
+      originLng: originCoords?.lng ?? null,
+      destinationLat: destinationCoords?.lat ?? null,
+      destinationLng: destinationCoords?.lng ?? null,
     },
     include: { driver: true },
   });
