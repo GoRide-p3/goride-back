@@ -92,6 +92,46 @@ export async function getRideById(id: string) {
   return formatRide(ride);
 }
 
+export async function getRideHistory(userId: string) {
+  const today = new Date().toISOString().slice(0, 10);
+  const historyWhere = {
+    OR: [
+      { status: { not: "active" } },
+      { date: { lt: today } },
+    ],
+  };
+
+  const offered = await prisma.ride.findMany({
+    where: {
+      driverId: userId,
+      ...historyWhere,
+    },
+    include: { driver: true },
+    orderBy: [{ date: "desc" }, { departureTimeStart: "desc" }],
+  });
+
+  const requested = await prisma.rideRequest.findMany({
+    where: {
+      passengerId: userId,
+      ride: historyWhere,
+    },
+    include: {
+      ride: { include: { driver: true } },
+    },
+    orderBy: { createdAt: "desc" },
+  });
+
+  return {
+    offered: offered.map(formatRide),
+    requested: requested.map((request) => ({
+      id: request.id,
+      status: request.status,
+      requestedAt: request.createdAt,
+      ride: formatRide(request.ride),
+    })),
+  };
+}
+
 export async function createRide(data: CreateRideInput) {
   await ensureDriverExists(data.driverId);
 
