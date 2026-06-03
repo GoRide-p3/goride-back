@@ -47,6 +47,15 @@ export async function getRideById(request: Request, response: Response) {
   }
 }
 
+export async function getRideHistory(request: Request, response: Response) {
+  try {
+    const history = await ridesService.getRideHistory(request.params.userId);
+    response.json(history);
+  } catch (error) {
+    sendControllerError(response, error);
+  }
+}
+
 export async function createRide(request: Request, response: Response) {
   try {
     const parsedBody = createRideSchema.safeParse(request.body);

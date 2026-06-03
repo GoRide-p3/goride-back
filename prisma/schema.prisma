@@ -28,6 +28,8 @@ model User {
 
   rides Ride[]
   rideRequests RideRequest[]
+  ratingsGiven Rating[] @relation("RatingsGiven")
+  ratingsReceived Rating[] @relation("RatingsReceived")
 }
 
 model Ride {
@@ -51,6 +53,7 @@ model Ride {
   driver User @relation(fields: [driverId], references: [id], onDelete: Cascade)
 
   requests RideRequest[]
+  ratings Rating[]
 
   @@index([driverId])
   @@index([date])
@@ -73,4 +76,22 @@ model RideRequest {
   @@index([rideId])
   @@index([passengerId])
   @@index([status])
+}
+
+model Rating {
+  id         String   @id @default(uuid())
+  fromUserId String
+  toUserId   String
+  rideId     String
+  rating     Int
+  comment    String?
+  createdAt  DateTime @default(now())
+
+  fromUser User @relation("RatingsGiven", fields: [fromUserId], references: [id], onDelete: Cascade)
+  toUser   User @relation("RatingsReceived", fields: [toUserId], references: [id], onDelete: Cascade)
+  ride     Ride @relation(fields: [rideId], references: [id], onDelete: Cascade)
+
+  @@unique([fromUserId, toUserId, rideId])
+  @@index([toUserId])
+  @@index([rideId])
 }

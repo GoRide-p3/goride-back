@@ -1,6 +1,11 @@
 import type { Request, Response } from "express";
 import { AppError } from "../../lib/app-error.js";
-import { loginSchema, registerSchema } from "./auth.schema.js";
+import {
+  forgotPasswordSchema,
+  loginSchema,
+  registerSchema,
+  resetPasswordSchema,
+} from "./auth.schema.js";
 import * as authService from "../auth/auth.service.js"
 
 function sendControllerError(response: Response, error: unknown) {
@@ -44,6 +49,44 @@ export async function login(request: Request, response: Response) {
     }
 
     const result = await authService.login(parsed.data);
+    response.json(result);
+  } catch (error) {
+    sendControllerError(response, error);
+  }
+}
+
+export async function forgotPassword(request: Request, response: Response) {
+  try {
+    const parsed = forgotPasswordSchema.safeParse(request.body);
+
+    if (!parsed.success) {
+      response.status(400).json({
+        message: "Dados invalidos",
+        issues: parsed.error.issues,
+      });
+      return;
+    }
+
+    const result = await authService.forgotPassword(parsed.data);
+    response.json(result);
+  } catch (error) {
+    sendControllerError(response, error);
+  }
+}
+
+export async function resetPassword(request: Request, response: Response) {
+  try {
+    const parsed = resetPasswordSchema.safeParse(request.body);
+
+    if (!parsed.success) {
+      response.status(400).json({
+        message: "Dados invalidos",
+        issues: parsed.error.issues,
+      });
+      return;
+    }
+
+    const result = await authService.resetPassword(parsed.data);
     response.json(result);
   } catch (error) {
     sendControllerError(response, error);
