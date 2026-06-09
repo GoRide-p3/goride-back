@@ -1,97 +1,82 @@
 # GoRide Backend
 
-Backend simples para o GoRide. Por enquanto, ele tem apenas o CRUD de caronas,
-que e a parte que o front precisa primeiro.
+Backend em Node.js para o GoRide. A API hoje cobre cadastro/login, perfil de
+usuario, CRUD de caronas e solicitacoes de carona.
 
 ## Como rodar
 
-Entre na pasta do backend:
-
 ```bash
 cd backend
-```
-
-Instale as dependencias:
-
-```bash
 npm install
-```
-
-Crie/atualize o banco local e gere o Prisma Client:
-
-```bash
-npm run prisma:push
+npm run prisma:migrate
 npm run prisma:generate
-```
-
-Coloque alguns dados de teste:
-
-```bash
 npm run prisma:seed
-```
-
-Suba a API:
-
-```bash
 npm run dev
 ```
 
-A API fica em:
+A API roda por padrao em:
 
 ```txt
 http://localhost:3000
 ```
 
-## Rotas
+Para conferir se subiu:
+
+```bash
+curl http://localhost:3000/health
+```
+
+## Variaveis de ambiente
+
+Use `.env.example` como base:
+
+```env
+DATABASE_URL="file:./dev.db"
+PORT=3000
+CORS_ORIGIN="http://localhost:5173"
+JWT_SECRET="troque-essa-chave-em-producao"
+```
+
+## Rotas principais
 
 ```txt
-GET    /health       testa se a API esta ligada
-GET    /rides        lista caronas
-GET    /rides/:id    busca uma carona especifica
-POST   /rides        cria uma carona
-PUT    /rides/:id    edita uma carona
-DELETE /rides/:id    remove uma carona
+GET    /health
+
+POST   /auth/register
+POST   /auth/login
+POST   /auth/forgot-password
+POST   /auth/reset-password
+
+GET    /user/:id
+PUT    /user/:id
+
+GET    /rides
+GET    /rides/:id
+GET    /rides/history/:userId
+POST   /rides
+PUT    /rides/:id
+DELETE /rides/:id
+
+POST   /rides/:rideId/requests
+GET    /rides/:rideId/requests
+PATCH  /requests/:requestId
+GET    /passengers/:passengerId/requests
+
+POST   /ratings
+GET    /ratings/users/:userId
+GET    /ratings/rides/:rideId
 ```
 
-## Exemplo para criar carona
+## Documentacao completa
 
-```json
-{
-  "driverId": "user-1",
-  "origin": "Jatiuca",
-  "destination": "UFAL - Campus A.C. Simoes",
-  "date": "2026-05-20",
-  "departureTimeStart": "07:30",
-  "departureTimeEnd": "08:00",
-  "price": 6.5,
-  "totalSeats": 3,
-  "sameGenderOnly": false
-}
-```
+Leia [DOCUMENTACAO_BACKEND.md](DOCUMENTACAO_BACKEND.md) para ver os modelos,
+contratos de request/response, regras atuais e pontos que ainda precisam ser
+melhorados.
 
-## Filtros da listagem
+## Usuarios do seed
 
-A rota `GET /rides` aceita alguns filtros pela URL:
+O seed cria alguns usuarios com a senha:
 
 ```txt
-origin
-destination
-date
-timeStart
-timeEnd
-maxPrice
-sameGenderOnly
-driverId
-status
+123456
 ```
-
-Exemplo:
-
-```txt
-GET /rides?origin=Jatiuca&date=2026-05-20
-```
-
-## Observacoes
-
-Ainda nao tem login, solicitacao de carona, chat ou avaliacao. O `driverId`
-por padrao fica como `user-1`, que vem do seed.

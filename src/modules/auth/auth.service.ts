@@ -2,7 +2,12 @@ import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
 import { AppError } from "../../lib/app-error.js";
 import { prisma } from "../../lib/prisma.js"
-import { LoginInput, RegisterInput } from "./auth.schema.js";
+import {
+  ForgotPasswordInput,
+  LoginInput,
+  RegisterInput,
+  ResetPasswordInput,
+} from "./auth.schema.js";
 
 const JWT_SECRET = process.env.JWT_SECRET ?? "dev-secret";
 const SALT_ROUNDS = 10;
@@ -13,6 +18,14 @@ if (!JWT_SECRET) {
 
 function generateToken(userId: string) {
   return jwt.sign({ sub: userId }, JWT_SECRET, { expiresIn: "7d" });
+}
+
+function generatePasswordResetToken(userId: string) {
+  return jwt.sign(
+    { sub: userId, purpose: "password-reset" },
+    JWT_SECRET,
+    { expiresIn: "15m" },
+  );
 }
 
 function formatUser(user: {
@@ -102,4 +115,49 @@ export async function login(data: LoginInput) {
   const token = generateToken(user.id);
 
   return { user: formatUser(user), token };
+}
+
+export async function forgotPassword(data: ForgotPasswordInput) {
+  const user = await prisma.user.findUnique({
+    where: { email: data.email },
+    select: { id: true },
+  });
+
+  if (!user) {
+    return {
+      message: "Se o email existir, um link de redefinicao sera enviado.",
+    };
+  }
+
+  const resetToken = generatePasswordResetToken(user.id);
+
+  return {
+    message: "Token de redefinicao gerado.",
+    resetToken,
+  };
+}
+
+export async function resetPassword(data: ResetPasswordInput) {
+  try {
+    const payload = jwt.verify(data.token, JWT_SECRET) as {
+      sub: string;
+      purpose?: string;
+    };
+
+    if (payload.purpose !== "password-reset") {
+      throw new AppError("Token invalido", 401);
+    }
+
+    const passwordHash = await bcrypt.hash(data.password, SALT_ROUNDS);
+
+    await prisma.user.update({
+      where: { id: payload.sub },
+      data: { passwordHash },
+    });
+
+    return { message: "Senha atualizada com sucesso." };
+  } catch (error) {
+    if (error instanceof AppError) throw error;
+    throw new AppError("Token invalido ou expirado", 401);
+  }
 }
