@@ -70,10 +70,15 @@ export async function listRides(query: ListRidesQuery) {
   if (query.origin && !query.passengerLat) {
     where.origin = { contains: query.origin };
   }
-  
   if (query.destination) where.destination = { contains: query.destination };
-  
-  if (query.date) where.date = query.date;
+  if (query.date) {
+    where.date = query.date;
+  } else {
+    const today = new Date();
+    const todayStr = today.toISOString().split("T")[0];
+    where.date = { gte: todayStr };
+  }
+
   if (query.timeStart) {
     where.departureTimeStart = {
       ...(query.timeStart ? { gte: query.timeStart } : {}),
@@ -168,6 +173,35 @@ export async function getRideHistory(userId: string) {
 
 export async function createRide(data: CreateRideInput) {
   await ensureDriverExists(data.driverId);
+
+  const conflict = await prisma.ride.findFirst({
+    where: {
+      driverId: data.driverId,
+      date: data.date,
+      status: "active",
+      OR: [
+        {
+          departureTimeStart: { lte: data.departureTimeStart },
+          departureTimeEnd: { gte: data.departureTimeStart },
+        },
+        {
+          departureTimeStart: { lte: data.departureTimeEnd },
+          departureTimeEnd: { gte: data.departureTimeEnd },
+        },
+        {
+          departureTimeStart: { gte: data.departureTimeStart },
+          departureTimeEnd: { lte: data.departureTimeEnd },
+        },
+      ],
+    },
+  });
+
+  if (conflict) {
+    throw new AppError(
+      `Você já tem uma carona ativa neste dia entre ${conflict.departureTimeStart} e ${conflict.departureTimeEnd}`,
+      409,
+    );
+  }
 
   const availableSeats = data.availableSeats ?? data.totalSeats;
 
