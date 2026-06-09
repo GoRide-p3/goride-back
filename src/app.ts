@@ -5,6 +5,7 @@ import { ridesRouter } from "./modules/rides/rides.routes.js";
 import { authRouter } from "./modules/auth/auth.routes.js";
 import { userRouter } from "./modules/user/user.routes.js";
 import { rideRequestsRouter } from "./modules/ride-request/ride-request.routes.js";
+import { geocodingRouter } from "./modules/geocoding/geocoding.routes.js";
 import { ratingsRouter } from "./modules/ratings/ratings.routes.js";
 
 const corsOrigins = process.env.CORS_ORIGIN?.split(",").map((origin) =>
@@ -29,15 +30,12 @@ app.get("/health", (_request, response) => {
   });
 });
 
+app.use("/", geocodingRouter);
 app.use("/auth", authRouter);
 app.use("/user", userRouter);
 app.use("/rides", ridesRouter);
 app.use("/ratings", ratingsRouter);
 app.use("/", rideRequestsRouter);
-
-app.use((_request, response) => {
-  response.status(404).json({ message: "Rota nao encontrada" });
-});
 
 app.use(
   (
