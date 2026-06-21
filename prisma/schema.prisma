@@ -49,6 +49,7 @@ model Ride {
   availableSeats     Int
   routeId            String?
   routeName          String?
+  routePolyline      String?
   sameGenderOnly     Boolean  @default(false)
   status             String   @default("active")
   createdAt          DateTime @default(now())

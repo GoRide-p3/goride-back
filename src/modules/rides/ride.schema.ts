@@ -28,6 +28,7 @@ export const createRideSchema = z
     availableSeats: z.coerce.number().int().min(0).optional(),
     routeId: z.string().trim().optional(),
     routeName: z.string().trim().optional(),
+    routePolyline: z.string().trim().optional(),
     sameGenderOnly: z.coerce.boolean().default(false),
     status: statusSchema.default("active"),
   })
@@ -65,6 +66,7 @@ export const updateRideSchema = z
     availableSeats: z.coerce.number().int().min(0).optional(),
     routeId: z.string().trim().optional(),
     routeName: z.string().trim().optional(),
+    routePolyline: z.string().trim().optional(),
     sameGenderOnly: z.coerce.boolean().optional(),
     status: statusSchema.optional(),
   })

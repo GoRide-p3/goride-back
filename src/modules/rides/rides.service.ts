@@ -3,23 +3,32 @@ import { geocodeAddress } from "../../lib/geocoding.js";
 import { haversineDistance } from "../../lib/haversine.js";
 import { prisma } from "../../lib/prisma.js"
 import type { CreateRideInput, ListRidesQuery, UpdateRideInput } from "./ride.schema.js";
+import { decodePolyline } from "../../lib/polyline.js";
+import { distanceToRoute } from "../../lib/route-distance.js";
 
 
 function formatRide(ride: any, passengerLat?: number, passengerLng?: number) {
   let proximityMeters: number | null = null;
 
-  if (
-    passengerLat !== undefined &&
-    passengerLng !== undefined &&
-    ride.originLat !== null &&
-    ride.originLng !== null
-  ) {
-    proximityMeters = haversineDistance(
-      passengerLat,
-      passengerLng,
-      ride.originLat,
-      ride.originLng,
-    );
+  if (passengerLat !== undefined && passengerLng !== undefined) {
+    const passenger = { lat: passengerLat, lng: passengerLng };
+
+    if (ride.routePolyline) {
+      try {
+        const routePoints = decodePolyline(ride.routePolyline);
+        proximityMeters = distanceToRoute(passenger, routePoints);
+      } catch (error) {
+        console.error(`Falha ao decodificar rota da carona ${ride.id}:`, error);
+      }
+    }
+
+    // Fallback: carona sem polyline salva (dado antigo) ou decode que falhou
+    if (proximityMeters === null && ride.originLat !== null && ride.originLng !== null) {
+      proximityMeters = haversineDistance(
+        passengerLat, passengerLng,
+        ride.originLat, ride.originLng,
+      );
+    }
   }
 
   return {
