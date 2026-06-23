@@ -65,7 +65,17 @@ export async function createRide(request: Request, response: Response) {
       return;
     }
 
-    const ride = await ridesService.createRide(parsedBody.data);
+    const driverId = request.userId;
+    if (!driverId) {
+      response.status(401).json({ message: "Não autorizado: Motorista não identificado." });
+      return;
+    }
+
+    const ride = await ridesService.createRide({
+      ...parsedBody.data,
+      driverId,
+    });
+    
     response.status(201).json(ride);
   } catch (error) {
     sendControllerError(response, error);
@@ -81,9 +91,18 @@ export async function updateRide(request: Request, response: Response) {
       return;
     }
 
+    const driverId = request.userId;
+    if (!driverId) {
+      response.status(401).json({ message: "Não autorizado: Motorista não identificado." });
+      return;
+    }
+
     const ride = await ridesService.updateRide(
       request.params.id,
-      parsedBody.data,
+      {
+        ...parsedBody.data,
+        driverId,
+      },
     );
     response.json(ride);
   } catch (error) {

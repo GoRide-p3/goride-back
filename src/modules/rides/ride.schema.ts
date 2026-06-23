@@ -17,7 +17,6 @@ const toMinutes = (time: string) => {
 
 export const createRideSchema = z
   .object({
-    driverId: z.string().min(1),
     origin: z.string().trim().min(2),
     destination: z.string().trim().min(2),
     date: dateSchema,
@@ -55,7 +54,6 @@ export const createRideSchema = z
 
 export const updateRideSchema = z
   .object({
-    driverId: z.string().min(1).optional(),
     origin: z.string().trim().min(2).optional(),
     destination: z.string().trim().min(2).optional(),
     date: dateSchema.optional(),
@@ -113,6 +111,6 @@ export const listRidesQuerySchema = z.object({
   passengerLng: z.coerce.number().optional(), 
 });
 
-export type CreateRideInput = z.infer<typeof createRideSchema>;
-export type UpdateRideInput = z.infer<typeof updateRideSchema>;
+export type CreateRideInput = z.infer<typeof createRideSchema> & {driverId: string;};
+export type UpdateRideInput = z.infer<typeof updateRideSchema> & {driverId: string;};
 export type ListRidesQuery = z.infer<typeof listRidesQuerySchema>;
