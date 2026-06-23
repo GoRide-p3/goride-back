@@ -59,7 +59,13 @@ export async function updateRideRequest(request: Request, response: Response) {
       return;
     }
 
-    const { status, driverId } = parsed.data;
+    const { status } = parsed.data;
+    const driverId = request.userId;
+
+    if (!driverId) {
+      response.status(401).json({ message: "Não autorizado: Motorista não identificado." });
+      return;
+    }
 
     const result = await rideRequestsService.updateRideRequest(
       request.params.requestId,

@@ -9,8 +9,6 @@ export const createRideRequestSchema = z.object({
 
 export const updateRideRequestSchema = z.object({
   status: z.enum(["accepted", "rejected"]),
-  driverId: z.string().min(1),
-
 });
 
 export type CreateRideRequestInput = z.infer<typeof createRideRequestSchema>;
