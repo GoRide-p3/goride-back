@@ -52,6 +52,13 @@ export async function listPassengerRequests(passengerId: string) {
 }
 
 export async function markBoardingModalSeen(requestId: string) {
+  const existing = await prisma.rideRequest.findUnique({
+    where: { id: requestId },
+    select: { id: true },
+  });
+
+  if (!existing) throw new AppError("Solicitação não encontrada", 404);
+
   return prisma.rideRequest.update({
     where: { id: requestId },
     data: { seenBoardingModal: true },
