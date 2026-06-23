@@ -71,3 +71,14 @@ export async function updateRideRequest(request: Request, response: Response) {
     sendControllerError(response, error);
   }
 }
+
+export async function markBoardingModalSeen(request: Request, response: Response) {
+  try {
+    const result = await rideRequestsService.markBoardingModalSeen(
+      request.params.requestId,
+    );
+    response.json(result);
+  } catch (error) {
+    sendControllerError(response, error);
+  }
+}

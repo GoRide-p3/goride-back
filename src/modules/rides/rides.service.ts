@@ -22,7 +22,6 @@ function formatRide(ride: any, passengerLat?: number, passengerLng?: number) {
       }
     }
 
-    // Fallback: carona sem polyline salva (dado antigo) ou decode que falhou
     if (proximityMeters === null && ride.originLat !== null && ride.originLng !== null) {
       proximityMeters = haversineDistance(
         passengerLat, passengerLng,
@@ -170,7 +169,7 @@ export async function getRideHistory(userId: string) {
   });
 
   return {
-    offered: offered.map(formatRide),
+    offered: offered.map((ride) => formatRide(ride)),
     requested: requested.map((request) => ({
       id: request.id,
       status: request.status,
