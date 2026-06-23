@@ -71,8 +71,13 @@ model RideRequest {
   rideId      String
   passengerId String
   status      String   @default("pending")
+  boardingAddress  String?  
+  boardingLat      Float? 
+  boardingLng      Float?
+  boardingTime     String?
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
+  seenBoardingModal  Boolean  @default(false)
 
   ride      Ride @relation(fields: [rideId], references: [id], onDelete: Cascade)
   passenger User @relation(fields: [passengerId], references: [id], onDelete: Cascade)

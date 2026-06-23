@@ -2,6 +2,9 @@ import { z } from "zod";
 
 export const createRideRequestSchema = z.object({
   passengerId: z.string().min(1),
+  boardingAddress: z.string().optional(),
+  boardingLat: z.coerce.number().optional(),
+  boardingLng: z.coerce.number().optional(),
 });
 
 export const updateRideRequestSchema = z.object({
