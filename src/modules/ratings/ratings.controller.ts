@@ -25,7 +25,17 @@ export async function createRating(request: Request, response: Response) {
       return;
     }
 
-    const rating = await ratingsService.createRating(parsed.data);
+    const fromUserId = request.userId;
+    if (!fromUserId) {
+      response.status(401).json({ message: "Não autorizado: Usuário não identificado." });
+      return;
+    }
+
+    const rating = await ratingsService.createRating({
+      ...parsed.data,
+      fromUserId,
+    });
+    
     response.status(201).json(rating);
   } catch (error) {
     sendControllerError(response, error);
