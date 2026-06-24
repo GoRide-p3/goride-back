@@ -49,7 +49,14 @@ export async function getRideById(request: Request, response: Response) {
 
 export async function getRideHistory(request: Request, response: Response) {
   try {
-    const history = await ridesService.getRideHistory(request.params.userId);
+    const userId = request.userId; 
+
+    if (!userId) {
+      response.status(401).json({ message: "Não autorizado: Usuário não identificado." });
+      return;
+    }
+
+    const history = await ridesService.getRideHistory(userId);
     response.json(history);
   } catch (error) {
     sendControllerError(response, error);

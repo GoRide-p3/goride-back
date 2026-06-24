@@ -12,9 +12,8 @@ import { authMiddleware } from "../auth/auth.middleware.js";
 export const ridesRouter = Router();
 
 ridesRouter.get("/", listRides);
-ridesRouter.get("/history/:userId", getRideHistory);
+ridesRouter.get("/history", authMiddleware, getRideHistory);
 ridesRouter.get("/:id", getRideById);
-
 ridesRouter.post("/", authMiddleware, createRide);
 ridesRouter.put("/:id", authMiddleware, updateRide);
 ridesRouter.delete("/:id", deleteRide);
