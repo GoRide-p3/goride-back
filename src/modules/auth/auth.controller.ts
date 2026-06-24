@@ -5,8 +5,10 @@ import {
   loginSchema,
   registerSchema,
   resetPasswordSchema,
+  changePasswordSchema,
 } from "./auth.schema.js";
 import * as authService from "../auth/auth.service.js"
+
 
 function sendControllerError(response: Response, error: unknown) {
   if (error instanceof AppError) {
@@ -87,6 +89,35 @@ export async function resetPassword(request: Request, response: Response) {
     }
 
     const result = await authService.resetPassword(parsed.data);
+    response.json(result);
+  } catch (error) {
+    sendControllerError(response, error);
+  }
+}
+
+export async function changePassword(request: Request, response: Response) {
+  try {
+    const parsed = changePasswordSchema.safeParse(request.body);
+
+    if (!parsed.success) {
+      response.status(400).json({
+        message: "Dados inválidos",
+        issues: parsed.error.issues,
+      });
+      return;
+    }
+
+    const userId = request.userId;
+    if (!userId) {
+      response.status(401).json({ message: "Não autorizado: Usuário não identificado." });
+      return;
+    }
+
+    const result = await authService.changePassword({
+      ...parsed.data,
+      userId,
+    });
+
     response.json(result);
   } catch (error) {
     sendControllerError(response, error);

@@ -7,6 +7,7 @@ import {
   LoginInput,
   RegisterInput,
   ResetPasswordInput,
+  ChangePasswordInput,
 } from "./auth.schema.js";
 
 const JWT_SECRET = process.env.JWT_SECRET ?? "dev-secret";
@@ -160,4 +161,34 @@ export async function resetPassword(data: ResetPasswordInput) {
     if (error instanceof AppError) throw error;
     throw new AppError("Token invalido ou expirado", 401);
   }
+}
+
+export async function changePassword(data: ChangePasswordInput) {
+  const user = await prisma.user.findUnique({
+    where: { id: data.userId },
+  });
+
+  if (!user) {
+    throw new AppError("Usuário não encontrado", 404);
+  }
+
+  const passwordMatch = await bcrypt.compare(data.currentPassword, user.passwordHash);
+
+  if (!passwordMatch) {
+    throw new AppError("Senha atual incorreta", 400);
+  }
+
+  const isSamePassword = await bcrypt.compare(data.newPassword, user.passwordHash);
+  if (isSamePassword) {
+    throw new AppError("A nova senha não pode ser igual à senha atual", 400);
+  }
+
+  const newPasswordHash = await bcrypt.hash(data.newPassword, SALT_ROUNDS);
+
+  await prisma.user.update({
+    where: { id: data.userId },
+    data: { passwordHash: newPasswordHash },
+  });
+
+  return { message: "Senha alterada com sucesso." };
 }
