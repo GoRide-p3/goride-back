@@ -42,13 +42,33 @@ export async function listRideRequests(rideId: string) {
 }
 
 export async function listPassengerRequests(passengerId: string) {
-  return prisma.rideRequest.findMany({
-    where: { passengerId },
-    include: {
-      ride: { include: { driver: true } },
-    },
-    orderBy: { createdAt: "desc" },
-  });
+  const requests = await prisma.rideRequest.findMany({
+      where: { passengerId },
+      include: {
+        ride: { include: { driver: true } },
+      },
+      orderBy: { createdAt: "desc" },
+    });
+ 
+    return Promise.all(
+      requests.map(async (request) => {
+        const ratingGiven = await prisma.rating.findUnique({
+          where: {
+            fromUserId_toUserId_rideId: {
+              fromUserId: passengerId,
+              toUserId: request.ride.driverId,
+              rideId: request.rideId,
+            },
+          },
+          select: { id: true },
+        });
+ 
+        return {
+          ...request,
+          passengerRatingGiven: !!ratingGiven,
+        };
+      }),
+    );
 }
 
 export async function markBoardingModalSeen(requestId: string) {
