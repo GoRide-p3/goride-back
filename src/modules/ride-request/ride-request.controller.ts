@@ -88,3 +88,20 @@ export async function markBoardingModalSeen(request: Request, response: Response
     sendControllerError(response, error);
   }
 }
+
+export async function deleteRideRequest(request: Request, response: Response) {
+  try {
+    const passengerId = request.userId;
+    if (!passengerId) {
+      response.status(401).json({ message: "Não autorizado" });
+      return;
+    }
+    await rideRequestsService.deleteRideRequest(
+      request.params.requestId,
+      passengerId,
+    );
+    response.status(204).send();
+  } catch (error) {
+    sendControllerError(response, error);
+  }
+}

@@ -140,3 +140,22 @@ export async function updateRideRequest(
 
   return updated;
 }
+
+export async function deleteRideRequest(requestId: string, passengerId: string) {
+  const request = await prisma.rideRequest.findUnique({
+    where: { id: requestId },
+  });
+
+  if (!request) throw new AppError("Solicitação não encontrada", 404);
+  if (request.passengerId !== passengerId) {
+    throw new AppError("Apenas o passageiro pode desistir da carona", 403);
+  }
+  if (request.status === "accepted") {
+    await prisma.ride.update({
+      where: { id: request.rideId },
+      data: { availableSeats: { increment: 1 } },
+    });
+  }
+
+  await prisma.rideRequest.delete({ where: { id: requestId } });
+}

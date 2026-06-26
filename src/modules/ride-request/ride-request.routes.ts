@@ -4,7 +4,8 @@ import {
   listRideRequests,
   updateRideRequest,
   listPassengerRequests,
-   markBoardingModalSeen,
+  markBoardingModalSeen,
+  deleteRideRequest,
 } from "./ride-request.controller.js";
 import { authMiddleware } from "../auth/auth.middleware.js";
 
@@ -17,3 +18,5 @@ rideRequestsRouter.patch("/requests/:requestId", authMiddleware, updateRideReque
 rideRequestsRouter.patch("/requests/:requestId/seen", markBoardingModalSeen);
 
 rideRequestsRouter.get("/passengers/:passengerId/requests", listPassengerRequests);
+
+rideRequestsRouter.delete("/requests/:requestId", authMiddleware, deleteRideRequest);
