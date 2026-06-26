@@ -168,14 +168,26 @@ export async function getRideHistory(userId: string) {
     orderBy: { createdAt: "desc" },
   });
 
+  const userRatings = await prisma.rating.findMany({
+    where: { fromUserId: userId },
+    select: { rideId: true }
+  });
+
+  const evaluatedRideIds = new Set(userRatings.map(r => r.rideId));
+
   return {
     offered: offered.map((ride) => formatRide(ride)),
-    requested: requested.map((request) => ({
-      id: request.id,
-      status: request.status,
-      requestedAt: request.createdAt,
-      ride: formatRide(request.ride),
-    })),
+    requested: requested.map((request) => {
+      const formattedRide = formatRide(request.ride);
+      
+      return {
+        id: request.id,
+        status: request.status,
+        requestedAt: request.createdAt,
+        ride: formattedRide,
+        passengerRatingGiven: evaluatedRideIds.has(request.rideId),
+      };
+    }),
   };
 }
 
