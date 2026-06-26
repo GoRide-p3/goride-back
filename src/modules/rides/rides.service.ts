@@ -7,7 +7,7 @@ import { decodePolyline } from "../../lib/polyline.js";
 import { distanceToRoute } from "../../lib/route-distance.js";
 
 
-function formatRide(ride: any, passengerLat?: number, passengerLng?: number) {
+function formatRide(ride: any, passengerLat?: number | undefined, passengerLng?: number | undefined) {
   let proximityMeters: number | null = null;
 
   if (passengerLat !== undefined && passengerLng !== undefined) {
@@ -56,7 +56,7 @@ function formatRide(ride: any, passengerLat?: number, passengerLng?: number) {
     status: ride.status,
     createdAt: ride.createdAt,
     updatedAt: ride.updatedAt,
-    proximityMeters, 
+    proximityMeters,
     isNearby: proximityMeters !== null && proximityMeters <= 500,
   };
 }
@@ -107,7 +107,7 @@ export async function listRides(query: ListRidesQuery) {
   });
 
   const formatted = rides.map((ride) =>
-    formatRide(ride, query.passengerLat, query.passengerLng),
+    formatRide(ride, query.passengerLat ?? undefined, query.passengerLng ?? undefined),
   );
 
   if (query.passengerLat !== undefined && query.passengerLng !== undefined) {
@@ -168,26 +168,32 @@ export async function getRideHistory(userId: string) {
     orderBy: { createdAt: "desc" },
   });
 
-  const userRatings = await prisma.rating.findMany({
-    where: { fromUserId: userId },
-    select: { rideId: true }
-  });
+  const requestedWithRatings = await Promise.all(
+    requested.map(async (request) => {
+      const ratingGiven = await prisma.rating.findUnique({
+        where: {
+          fromUserId_toUserId_rideId: {
+            fromUserId: userId,
+            toUserId: request.ride.driverId,
+            rideId: request.rideId,
+          },
+        },
+        select: { id: true },
+      });
 
-  const evaluatedRideIds = new Set(userRatings.map(r => r.rideId));
-
-  return {
-    offered: offered.map((ride) => formatRide(ride)),
-    requested: requested.map((request) => {
-      const formattedRide = formatRide(request.ride);
-      
       return {
         id: request.id,
         status: request.status,
         requestedAt: request.createdAt,
-        ride: formattedRide,
-        passengerRatingGiven: evaluatedRideIds.has(request.rideId),
+        passengerRatingGiven: !!ratingGiven,
+        ride: formatRide(request.ride),
       };
     }),
+  );
+
+  return {
+    offered: offered.map((ride) => formatRide(ride)),
+    requested: requestedWithRatings,
   };
 }
 
