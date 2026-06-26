@@ -9,6 +9,7 @@ import {
   ResetPasswordInput,
   ChangePasswordInput,
 } from "./auth.schema.js";
+import { sendPasswordResetEmail } from "../../lib/mailer.js";
 
 const JWT_SECRET = process.env.JWT_SECRET ?? "dev-secret";
 const SALT_ROUNDS = 10;
@@ -121,7 +122,7 @@ export async function login(data: LoginInput) {
 export async function forgotPassword(data: ForgotPasswordInput) {
   const user = await prisma.user.findUnique({
     where: { email: data.email },
-    select: { id: true },
+    select: { id: true, email: true },
   });
 
   if (!user) {
@@ -132,9 +133,14 @@ export async function forgotPassword(data: ForgotPasswordInput) {
 
   const resetToken = generatePasswordResetToken(user.id);
 
+  try {
+      await sendPasswordResetEmail(user.email, resetToken);
+    } catch (error) {
+      console.error("[MAILER] Falha ao enviar email de redefinição:", error);
+    }
+
   return {
-    message: "Token de redefinicao gerado.",
-    resetToken,
+    message: "Se o email existir, um link de redefinicao sera enviado.",
   };
 }
 
